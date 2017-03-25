@@ -39,13 +39,38 @@
         return false;
       });
 
+      $('#m').on("input",function(){
+        if($('#m').val() != "" && $('#m').val().search(/\/.*$/) == -1){
+         socket.emit('typing', socket.id, socket.id, true);
+         console.log("typing...")
+       }else{
+         console.log("end typing...")
+         socket.emit('typing', socket.id, socket.id, false);
+       }
+     });
+
+      socket.on('typing', function(id, nick ,start){
+      if(start){
+        console.log("Start typing " + id);
+        $('#messages').append($('<li>').html( "<div class='typing " + id + "'>"
+            + nick + " is typing...</div>" ));
+
+       }else{
+        console.log("End typing " + id);
+        $('.typing.' + id).parent().remove();
+       }
+     });
+
      socket.on('connection status', function(msg){
       $('#messages').append($('<li>').text(msg));
      });
 
      socket.on('chat message', function(msg){
       $('#messages').append($('<li>').html(msg));
+      // remove any outstanding typing messages //
+      $('.typing.' + socket.id).parent().remove();
     });
+
   });
 </script>
   </head>
