@@ -17,4 +17,4 @@ The botom of the text suggest adding several features.
 >* Share your improvements!"
 >
 
-I've added all features but the {user} typing feature, which I'm working on now.
+I've added all the listed features. I plan on improving the code for practice.
