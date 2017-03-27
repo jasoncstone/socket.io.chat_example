@@ -19,29 +19,32 @@ io.on('connection', function(socket){
   socket.on('chat message', function(msg){
     socket.broadcast.emit('chat message', (sockets[socket.id].nick || socket.id) + ": " + msg);
     sockets[socket.id].typing = false;
-    socket.broadcast.emit('typing', socket.id, (sockets[socket.id].nick || socket.id), false);
+    socket.broadcast.emit('typing', socket.id, (sockets[socket.id].nick || socket.id));
   });
 
-  socket.on('msg', function(id, msg){
+  socket.on('msg', function(to, from, msg){
     var dest_socket;
-    if(!sockets[id]){
-      for(props in sockets){
-        if(sockets[props].nick == id){
-          dest_socket = sockets[props].socket;
+    var dest_socket_id
+    if(!sockets[to]){
+      for(prop in sockets){
+        if(sockets[prop].nick == to){
+          dest_socket = sockets[prop].socket;
+          dest_socket_id = dest_socket.id;
         }
       }
     }else{
-    	dest_socket = sockets[id].socket;
+    	dest_socket = sockets[to].socket;
+      dest_socket_id = dest_socket.id;
     }
 
     if(dest_socket){
-      dest_socket.emit("chat message", "<div id='private'>Private message from " + (sockets[socket.id].nick || socket.id) + ": " + msg + "</div>");
+      dest_socket.emit("msg", (sockets[dest_socket_id].nick || dest_socket.id),
+          (sockets[socket.id].nick || socket.id), msg);
     }else{
-      socket.emit("chat message", "Error: " + id + " could not be found!");
+      socket.emit("msg", to, "Error: " + to + " could not be found!");
     }
     sockets[socket.id].typing = false;
     socket.broadcast.emit('typing', socket.id, (sockets[socket.id].nick || socket.id), false);
-
   });
 
   socket.on('disconnect', function(msg){
@@ -69,11 +72,12 @@ io.on('connection', function(socket){
     io.emit('chat message',oldNick + " changed name to " + nick);
   });
 
+
   socket.on('typing', function(id, nick, start){
-    if(sockets[id].typing == false && start){
+    if(sockets[id] && sockets[id].typing == false && start){
       sockets[id].typing = true;
       socket.broadcast.emit('typing', socket.id, (sockets[socket.id].nick || socket.id), true);
-    }else if(start == false){
+    }else if(sockets[id] && start == false){
       sockets[id].typing = false;
       socket.broadcast.emit('typing', socket.id, (sockets[socket.id].nick || socket.id), false);
     }
